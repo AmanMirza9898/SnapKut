@@ -1,289 +1,156 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  TouchableOpacity, 
+  Dimensions, 
+  Animated,
+  Image 
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: true,
+          })
+        ])
+      )
+    ]).start();
+  }, [fadeAnim, slideAnim, pulseAnim]);
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <LinearGradient
-        colors={['#0f172a', '#1e1b4b', '#000000']}
+        colors={['#050A0F', '#0D1B2A', '#050A0F']}
         style={styles.background}
       />
       
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
-          {/* Logo Section */}
-          <View style={styles.logoContainer}>
-            <View style={styles.logoBox}>
-              <MaterialCommunityIcons name="reply-all" size={40} color="#3dfc3d" style={styles.logoIcon} />
-            </View>
-            <Ionicons name="chatbubble-ellipses" size={24} color="#3dfc3d" style={styles.floatingChatIcon} />
-          </View>
-
-          {/* Title Section */}
-          <View style={styles.header}>
-            <Text style={styles.title}>SnapKut</Text>
-            <Text style={styles.subtitle}>Your Social Inbox,{"\n"}Simplified.</Text>
-            <Text style={styles.caption}>ONE TAP TO ANY DM.</Text>
-          </View>
-
-          {/* Center Card */}
-          <View style={styles.cardContainer}>
-            <Ionicons name="at-circle" size={32} color="#4b5563" style={styles.atIcon} />
-            <View style={styles.card}>
-              <View style={styles.cardRow}>
-                <View style={styles.avatar}>
-                  <Ionicons name="person" size={18} color="#fff" />
-                </View>
-                <View style={styles.progressContainer}>
-                  <View style={styles.progressBarBg} />
-                  <View style={styles.progressBarActive} />
-                </View>
-                <View style={styles.flashIcon}>
-                   <Ionicons name="flash" size={14} color="#3dfc3d" />
-                </View>
-              </View>
-              <View style={styles.cardFooter}>
-                 <View style={styles.smallAvatars}>
-                    <View style={[styles.smallAvatar, {zIndex: 3}]} />
-                    <View style={[styles.smallAvatar, {zIndex: 2, marginLeft: -10}]} />
-                    <View style={[styles.smallAvatar, {zIndex: 1, marginLeft: -10}]} />
-                 </View>
-                 <Text style={styles.messageCount}>+12 MESSAGES</Text>
+        <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          
+          {/* RADIANT HERO SECTION */}
+          <View style={styles.heroSection}>
+            <Animated.View style={[styles.logoWrapper, { transform: [{ scale: pulseAnim }] }]}>
+               <Image 
+                 source={require('../assets/branding/logo.png')} 
+                 style={styles.logo}
+                 resizeMode="contain"
+               />
+               <View style={styles.logoRing} />
+            </Animated.View>
+            
+            <View style={styles.brandHeader}>
+              <Text style={styles.brandTitle}>SHORTKUT</Text>
+              <View style={styles.titleUnderline}>
+                <LinearGradient
+                  colors={['#58CCFF', '#A044FF']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.gradientLine}
+                />
               </View>
             </View>
           </View>
 
-          {/* Action Buttons */}
+          {/* VALUE PROP SECTION */}
+          <View style={styles.valueProp}>
+            <Text style={styles.headline}>Your Messaging Hub,{"\n"}<Text style={styles.highlight}>Accelerated.</Text></Text>
+            <Text style={styles.subheadline}>Connect all your social portals in one high-velocity terminal. No bloat. Pure speed.</Text>
+          </View>
+
+          {/* ACTION SECTION */}
           <View style={styles.footer}>
             <TouchableOpacity 
-              style={styles.getStartedBtn}
-              onPress={() => router.push('/(tabs)')}
+              activeOpacity={0.8}
+              style={styles.primaryBtn}
+              onPress={() => router.push('/register')}
             >
-              <Text style={styles.getStartedText}>Get Started</Text>
-              <Ionicons name="arrow-forward" size={24} color="#000" />
+              <LinearGradient
+                colors={['#58CCFF', '#A044FF']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.btnGradient}
+              >
+                <Text style={styles.primaryBtnText}>GET STARTED</Text>
+                <Ionicons name="flash" size={20} color="#fff" />
+              </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={styles.loginBtn}
+              activeOpacity={0.7}
+              style={styles.secondaryBtn}
               onPress={() => router.push('/login')}
             >
-              <Text style={styles.loginText}>LOG IN TO ACCOUNT</Text>
+              <Text style={styles.secondaryBtnText}>LOG IN TO ACCOUNT</Text>
             </TouchableOpacity>
 
-            <Text style={styles.termsText}>
-              By continuing, you agree to our <Text style={styles.link}>Terms of Service</Text>{"\n"}
-              and <Text style={styles.link}>Privacy Policy</Text>.
+            <Text style={styles.terms}>
+              By joining, you agree to our <Text style={styles.link}>Terms</Text> and <Text style={styles.link}>Privacy</Text>
             </Text>
           </View>
-        </View>
+
+        </Animated.View>
       </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  background: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'space-between',
-    paddingVertical: 40,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  logoBox: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#1e293b',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    transform: [{ rotate: '-10deg' }],
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  logoIcon: {
-    transform: [{ rotate: '10deg' }],
-  },
-  floatingChatIcon: {
-    position: 'absolute',
-    right: width * 0.2,
-    top: 50,
-    opacity: 0.6,
-  },
-  header: {
-    alignItems: 'center',
-    marginTop: -20,
-  },
-  title: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: '#fff',
-    fontStyle: 'italic',
-    letterSpacing: -1,
-  },
-  subtitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#fff',
-    textAlign: 'center',
-    marginTop: 10,
-    lineHeight: 34,
-  },
-  caption: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#94a3b8',
-    marginTop: 15,
-    letterSpacing: 1,
-  },
-  cardContainer: {
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  atIcon: {
-    position: 'absolute',
-    left: 20,
-    top: -10,
-    zIndex: 10,
-    opacity: 0.5,
-  },
-  card: {
-    width: '100%',
-    backgroundColor: 'rgba(30, 41, 59, 0.5)',
-    borderRadius: 30,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#334155',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressContainer: {
-    flex: 1,
-    height: 8,
-    marginHorizontal: 15,
-    justifyContent: 'center',
-  },
-  progressBarBg: {
-    height: 6,
-    backgroundColor: '#0f172a',
-    borderRadius: 3,
-    width: '80%',
-  },
-  progressBarActive: {
-    height: 4,
-    backgroundColor: '#1e293b',
-    borderRadius: 2,
-    width: '40%',
-    position: 'absolute',
-    top: 1,
-  },
-  flashIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(61, 252, 61, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 25,
-  },
-  smallAvatars: {
-    flexDirection: 'row',
-  },
-  smallAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#000',
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  messageCount: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
-  },
-  footer: {
-    gap: 15,
-  },
-  getStartedBtn: {
-    backgroundColor: '#3dfc3d',
-    height: 64,
-    borderRadius: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-    shadowColor: '#3dfc3d',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  getStartedText: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#000',
-  },
-  loginBtn: {
-    height: 64,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderStyle: 'dashed',
-  },
-  loginText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#fff',
-    letterSpacing: 1,
-  },
-  termsText: {
-    fontSize: 12,
-    color: '#94a3b8',
-    textAlign: 'center',
-    lineHeight: 18,
-    marginTop: 10,
-  },
-  link: {
-    color: '#3dfc3d',
-    fontWeight: '600',
-  },
+  container: { flex: 1 },
+  background: { ...StyleSheet.absoluteFillObject },
+  safeArea: { flex: 1 },
+  content: { flex: 1, paddingHorizontal: 30, justifyContent: 'space-between', paddingVertical: 40 },
+  heroSection: { alignItems: 'center', marginTop: height * 0.05 },
+  logoWrapper: { width: 140, height: 140, justifyContent: 'center', alignItems: 'center' },
+  logo: { width: '100%', height: '100%' },
+  logoRing: { position: 'absolute', width: 180, height: 180, borderRadius: 90, borderWidth: 1, borderColor: 'rgba(88, 204, 255, 0.1)', borderStyle: 'dashed' },
+  brandHeader: { alignItems: 'center', marginTop: 25 },
+  brandTitle: { fontSize: 32, fontWeight: '900', color: '#fff', letterSpacing: 8 },
+  titleUnderline: { width: 60, height: 4, marginTop: 8, borderRadius: 2, overflow: 'hidden' },
+  gradientLine: { flex: 1 },
+  valueProp: { alignItems: 'center' },
+  headline: { fontSize: 36, fontWeight: '900', color: '#fff', textAlign: 'center', lineHeight: 44 },
+  highlight: { color: '#58CCFF' },
+  subheadline: { fontSize: 16, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 15, lineHeight: 24, paddingHorizontal: 20 },
+  footer: { gap: 18 },
+  primaryBtn: { height: 64, borderRadius: 20, overflow: 'hidden', shadowColor: '#A044FF', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 15, elevation: 8 },
+  btnGradient: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12 },
+  primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '900', letterSpacing: 2 },
+  secondaryBtn: { height: 60, borderRadius: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  secondaryBtnText: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '800', letterSpacing: 1 },
+  terms: { fontSize: 10, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: 10 },
+  link: { color: '#58CCFF', textDecorationLine: 'underline' }
 });

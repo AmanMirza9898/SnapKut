@@ -1,6 +1,6 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
-const SocialLinkSchema = new Schema(
+const SocialShortcutSchema = new Schema(
   {
     platform: { 
       type: String, 
@@ -14,5 +14,5 @@ const SocialLinkSchema = new Schema(
   { timestamps: true }
 );
 
-const SocialLink = models.SocialLink || model("SocialLink", SocialLinkSchema);
-export default SocialLink;
+const SocialShortcut = models.SocialShortcut || model("SocialShortcut", SocialShortcutSchema);
+export default SocialShortcut;

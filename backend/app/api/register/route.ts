@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  console.log("Registration request received!");
   try {
     const { name, email, password } = await req.json();
 

@@ -1,56 +1,53 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Tabs } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { StyleSheet, View, TouchableOpacity, Platform } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { Ionicons, Feather } from '@expo/vector-icons';
 
 export default function TabLayout() {
+  const router = useRouter();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#3dfc3d',
-        tabBarInactiveTintColor: '#94a3b8',
-        tabBarStyle: {
-          backgroundColor: '#0a0a0a',
-          borderTopWidth: 0,
-          height: 80,
-          paddingBottom: 20,
-        },
+        tabBarActiveTintColor: '#39FF14',
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.2)',
+        tabBarStyle: { display: 'none' }, // FULLY HIDE BOTTOM TAB BAR
         tabBarShowLabel: false,
         headerShown: false,
       }}>
+      
+      {/* Home Tab */}
       <Tabs.Screen
         name="index"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIconContainer, focused && styles.activeTabBg]}>
-              <Ionicons name="home" size={24} color={focused ? '#000' : color} />
-            </View>
+            <Ionicons name={focused ? "home" : "home-outline"} size={24} color={color} />
           ),
         }}
       />
+
+      {/* Hide Add Tab */}
       <Tabs.Screen
         name="add"
         options={{
-          tabBarIcon: ({ color }) => (
-            <View style={styles.dashedTabIcon}>
-              <Ionicons name="add" size={24} color={color} />
-            </View>
-          ),
+          href: null,
         }}
       />
+
+      {/* Hide Analytics Tab */}
       <Tabs.Screen
         name="two"
         options={{
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="chart-bar" size={24} color={color} />
-          ),
+          href: null,
         }}
       />
+
+      {/* Settings Tab */}
       <Tabs.Screen
         name="settings"
         options={{
-          tabBarIcon: ({ color }) => (
-             <Ionicons name="settings-sharp" size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+             <Ionicons name={focused ? "settings" : "settings-outline"} size={24} color={color} />
           ),
         }}
       />
@@ -59,29 +56,23 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabIconContainer: {
-    width: 48,
-    height: 48,
+  centerFabContainer: {
+    marginBottom: Platform.OS === 'ios' ? 25 : 35,
+    padding: 10,
+  },
+  centerFabBody: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#39FF14',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  activeTabBg: {
-    backgroundColor: '#3dfc3d',
-    borderRadius: 24,
-    shadowColor: '#3dfc3d',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
     elevation: 8,
-  },
-  dashedTabIcon: {
-    width: 40,
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#334155',
-    borderStyle: 'dashed',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderWidth: 4,
+    borderColor: '#000',
   },
 });

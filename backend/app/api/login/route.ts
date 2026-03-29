@@ -17,12 +17,19 @@ export async function POST(req: Request) {
     await connectDB();
 
     const user = await User.findOne({ email });
-    if (!user || !user.password) {
+    if (!user) {
+      console.log(`Login attempt failed: User not found for email ${email}`);
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+
+    if (!user.password) {
+      console.log(`Login attempt failed: User ${email} has no password (OAuth user?)`);
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
+      console.log(`Login attempt failed: Incorrect password for user ${email}`);
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
