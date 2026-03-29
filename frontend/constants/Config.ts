@@ -1,1 +1,1 @@
-export const API_URL = "http://10.156.140.236:3000/api";
+export const API_URL = "https://shortkut-t3ek.onrender.com/api";

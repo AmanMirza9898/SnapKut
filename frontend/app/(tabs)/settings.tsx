@@ -290,7 +290,7 @@ export default function SettingsScreen() {
         message="Are you sure you want to terminate your current secure session?"
         onClose={() => setLogoutAlert(false)}
         onConfirm={confirmLogout}
-        confirmText="Logout"
+        confirmText="LOGOUT"
       />
     </View>
   );

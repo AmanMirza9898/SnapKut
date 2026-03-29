@@ -172,6 +172,12 @@ export default function UnifiedDashboard() {
       if (response.ok) {
         const newLinks = data.links || [];
         setLinks(newLinks);
+        
+        // V67: SAFETY NET - If pending platform is now linked, clear the spinner
+        if (pendingPlatform && newLinks.some((l: any) => l.platform.toLowerCase() === pendingPlatform.toLowerCase())) {
+           setPendingPlatform(null);
+        }
+
         if (activeLinkId && !newLinks.some((l: any) => l._id === activeLinkId)) {
            handlePlatformJump('home');
         }
@@ -227,12 +233,17 @@ export default function UnifiedDashboard() {
         body: JSON.stringify({ platform: syncPlatform, username: detectedUser })
       });
       if (response.ok) {
-        // V53.5: INSTANT CLEAR BEFORE FETCH
+        // V64: OPTIMISTIC UI - Add to local state immediately so it "FIXES" in sidebar
+        const newLink = { _id: `opt_${Date.now()}`, platform: syncPlatform, username: detectedUser };
+        setLinks(prev => [newLink, ...prev]);
+
         setIsAddingMode(false);
         setSyncPlatform(null);
-        setPendingPlatform(null);
+        setPendingPlatform(null); // V67: CLEAR IMMEDIATELY ON SUCCESS
         setIsSyncing(false);
-        await fetchLinks(true);
+        
+        // V64: Background fetch to sync real IDs/details
+        fetchLinks(true);
         setActivePlatform('home');
       }
     } catch (error) {
@@ -247,26 +258,30 @@ export default function UnifiedDashboard() {
       const scan = () => {
         let username = null;
         const url = window.location.href;
-        // INSTAGRAM
+        const html = document.body.innerHTML;
+        
+        // INSTAGRAM (URL + DOM Detection)
         if (url.includes('instagram.com/')) {
            const path = window.location.pathname.split('/').filter(Boolean);
            if (path.length === 1 && !['explore', 'reels', 'direct', 'accounts', 'stories', 'p', 'tv'].includes(path[0])) {
               username = path[0];
+           } else if (document.querySelector('[aria-label="Home"]') || document.querySelector('[aria-label="Direct message"]') || html.includes('Your story')) {
+              username = "Instagram_User";
            }
         }
-        // FACEBOOK
-        if (url.includes('facebook.com') && !url.includes('login') && !url.includes('checkpoint')) {
-           username = "FB_User";
+        // FACEBOOK (DOM Detection)
+        if (url.includes('facebook.com') && !url.includes('login')) {
+           if (document.querySelector('[aria-label="Home"]') || document.querySelector('[aria-label="Messenger"]') || url.includes('/messages')) {
+              username = "FB_User";
+           }
         }
-        // LINKEDIN (V53)
-        if (url.includes('linkedin.com/') && (url.includes('/feed') || url.includes('/in/') || url.includes('/mynetwork') || url.includes('/messaging'))) {
+        // OTHER PLATFORMS (DOM Detection)
+        if (url.includes('linkedin.com') && (document.querySelector('.feed-identity-module') || url.includes('/feed'))) {
            username = "LinkedIn_User";
         }
-        // TWITTER/X (V53)
-        if ((url.includes('twitter.com') || url.includes('x.com')) && url.includes('/home')) {
+        if ((url.includes('twitter.com') || url.includes('x.com')) && (document.querySelector('[aria-label="Home timeline"]') || url.includes('/home'))) {
            username = "Twitter_User";
         }
-        // DISCORD (V53)
         if (url.includes('discord.com/channels/')) {
            username = "Discord_User";
         }
@@ -276,7 +291,22 @@ export default function UnifiedDashboard() {
            if (scanTimer) clearInterval(scanTimer);
         }
       };
-      scanTimer = setInterval(scan, 3000); // V53: FASTER SCAN
+      scan(); // V69: INSTANT INITIAL SCAN
+      scanTimer = setInterval(scan, 500); // V69: HIGH-SPEED SCAN (0.5s)
+      true;
+    })();
+  `;
+
+  const themeScript = `
+    (function() {
+      const mode = '${themeMode}';
+      document.documentElement.style.colorScheme = mode;
+      if (mode === 'light') {
+         document.body.style.backgroundColor = '#ffffff';
+         const style = document.createElement('style');
+         style.innerHTML = 'html, body { background-color: white !important; color: black !important; }';
+         document.head.appendChild(style);
+      }
       true;
     })();
   `;
@@ -327,8 +357,8 @@ export default function UnifiedDashboard() {
               {syncPlatform ? (
                  <View style={[styles.addPortalContainer, { backgroundColor: themeMode === 'dark' ? '#050A0F' : '#fff' }]}>
                     <View style={styles.portalNav}>
-                       <TouchableOpacity onPress={() => setSyncPlatform(null)}><Feather name="arrow-left" size={24} color={TColors.text} /></TouchableOpacity>
-                       <Text style={[styles.portalTitle, { color: TColors.text }]}>CONNECT {syncPlatform.toUpperCase()}</Text>
+                       <TouchableOpacity style={styles.navAction} onPress={() => { setSyncPlatform(null); setPendingPlatform(null); setIsAddingMode(false); }}><Feather name="arrow-left" size={24} color={TColors.text} /><Text style={[styles.navActionText, { color: TColors.text }]}>CANCEL</Text></TouchableOpacity>
+                       <Text style={[styles.portalTitle, { color: TColors.text }]}>LOGIN {syncPlatform.toUpperCase()}</Text>
                        <View style={{ width: 24 }} />
                     </View>
                     <View style={styles.webviewWrapper}>
@@ -340,7 +370,7 @@ export default function UnifiedDashboard() {
                           <WebView 
                             source={{ uri: PLATFORMS_CONFIG[syncPlatform.toLowerCase()].loginUri }} 
                             style={{ flex: 1, backgroundColor: TColors.bg }} 
-                            injectedJavaScript={discoveryScript} 
+                            injectedJavaScript={discoveryScript + themeScript} 
                             onMessage={onMessage} 
                             userAgent="Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36"
                           />
@@ -440,8 +470,10 @@ const styles = StyleSheet.create({
   homeHeroDesc: { fontSize: 14, textAlign: 'center', lineHeight: 22, paddingHorizontal: 40 },
   portalWrapper: { flex: 1 },
   addPortalContainer: { flex: 1, margin: 10, borderRadius: 30, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
-  portalNav: { flexDirection: 'row', padding: 15, alignItems: 'center', justifyContent: 'space-between' },
-  portalTitle: { fontSize: 10, fontWeight: '900', letterSpacing: 2 },
+  portalNav: { flexDirection: 'row', padding: 15, alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' },
+  navAction: { flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 80 },
+  navActionText: { fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  portalTitle: { fontSize: 10, fontWeight: '900', letterSpacing: 2, flex: 1, textAlign: 'center', paddingHorizontal: 10 },
   webviewWrapper: { flex: 1, margin: 10, borderRadius: 20, overflow: 'hidden' },
   syncOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   syncText: { fontSize: 12, fontWeight: '900', marginTop: 15 },

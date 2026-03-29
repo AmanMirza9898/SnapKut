@@ -57,7 +57,7 @@ export default function RegisterScreen() {
       });
       const data = await response.json();
       if (response.ok) {
-        showAlert('success', 'Profile Created', 'Your ShortKut terminal is ready. Please authorize your session.', () => {
+        showAlert('success', 'Profile Created', 'Your ShortKut terminal is ready. Please LOGIN now.', () => {
           router.push('/login');
         });
       } else {
@@ -155,7 +155,7 @@ export default function RegisterScreen() {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <>
-                    <Text style={styles.registerText}>INITIALIZE ACCOUNT</Text>
+                    <Text style={styles.registerText}>SIGNUP</Text>
                     <Ionicons name="rocket" size={18} color="#fff" />
                   </>
                 )}

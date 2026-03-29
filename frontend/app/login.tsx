@@ -151,7 +151,7 @@ export default function LoginScreen() {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <>
-                    <Text style={styles.signInText}>AUTHORIZE SESSION</Text>
+                    <Text style={styles.signInText}>LOGIN</Text>
                     <Ionicons name="key" size={18} color="#fff" />
                   </>
                 )}
