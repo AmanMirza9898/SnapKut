@@ -16,7 +16,7 @@ import Sidebar from '@/components/dashboard/Sidebar';
 import AddAccountModal from '@/components/dashboard/AddAccountModal';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardUI({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const router = useRouter();
@@ -110,5 +110,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
     </div>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0a0a]"><div className="w-16 h-16 border-4 border-white/10 border-t-[#39FF14] rounded-full animate-spin" /></div>}>
+      <DashboardUI>{children}</DashboardUI>
+    </Suspense>
   );
 }
